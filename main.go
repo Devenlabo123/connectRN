@@ -43,7 +43,7 @@ func main() {
 
 	go startServer(&wg, srv)
 
-	//log.Info("service initialized")
+	log.Info("service initialized")
 	wg.Wait()
 
 }

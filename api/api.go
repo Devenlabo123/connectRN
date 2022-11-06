@@ -16,10 +16,6 @@ func CreateHandler() (*Handler, error) {
 	return &Handler{}, nil
 }
 
-type PayloadInterface interface {
-	Valid() error
-}
-
 // CreateUserRequestBody defines the format of the /createUser request body.
 type CreateUserRequestBody struct {
 	// example: 123456
@@ -48,8 +44,8 @@ type CreateUserResponseBody struct {
 	CreateOn string `json:"create_on_rfc"`
 }
 
-func (users CreateUserRequestBodyList) Valid() error {
-	for _, user := range users.list {
+func validateCreateUserInput(users []CreateUserRequestBody) error {
+	for _, user := range users {
 		if user.UserId == 0 {
 			return fmt.Errorf("user_id is required")
 		}
@@ -81,15 +77,15 @@ func (h *Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 }
 
 func (h *Handler) handleCreateUserRequest(writer http.ResponseWriter, request *http.Request) {
-	payload := &CreateUserRequestBodyList{}
+	payload := &[]CreateUserRequestBody{}
 
-	if err := ReadAndParseRequestBody(writer, request, payload); err != nil {
+	if err := ReadAndParseUserRequestBody(writer, request, payload); err != nil {
 		return
 	}
 
 	var responseList []CreateUserResponseBody
 
-	for _, user := range payload.list {
+	for _, user := range *payload {
 		dayOfWeek, err := getDayFromDate(user.DateOfBirth)
 		if err != nil {
 			log.
@@ -116,7 +112,7 @@ func (h *Handler) handleCreateUserRequest(writer http.ResponseWriter, request *h
 	writeCreateUserResponse(writer, responseList)
 }
 
-func ReadAndParseRequestBody(w http.ResponseWriter, r *http.Request, payload PayloadInterface) (err error) {
+func ReadAndParseUserRequestBody(w http.ResponseWriter, r *http.Request, userRequestList *[]CreateUserRequestBody) (err error) {
 	bodyBytes, err := io.ReadAll(r.Body)
 
 	if err != nil {
@@ -130,7 +126,7 @@ func ReadAndParseRequestBody(w http.ResponseWriter, r *http.Request, payload Pay
 		return
 	}
 
-	err = json.Unmarshal(bodyBytes, payload)
+	err = json.Unmarshal(bodyBytes, userRequestList)
 	if err != nil {
 		log.
 			WithField("func", "ReadAndParseRequestBody").
@@ -141,7 +137,7 @@ func ReadAndParseRequestBody(w http.ResponseWriter, r *http.Request, payload Pay
 		return
 	}
 
-	err = payload.Valid()
+	err = validateCreateUserInput(*userRequestList)
 
 	if err != nil {
 		log.
@@ -150,6 +146,7 @@ func ReadAndParseRequestBody(w http.ResponseWriter, r *http.Request, payload Pay
 			WithError(err).
 			Error("Invalid request body")
 		WriteStatusCode(w, http.StatusUnprocessableEntity)
+		WriteResponse(w, err.Error())
 		return
 	}
 
@@ -179,8 +176,23 @@ func WriteStatusCode(writer http.ResponseWriter, statusCode int) int {
 	return statusCode
 }
 
+func WriteResponse(w http.ResponseWriter, text string) {
+	// fyi, w.Write could return an error for a number of reasons, including:
+	// The connection was hijacked (see http.Hijacker)
+	// Content-length was specified, but more data was written than was indicated (http.ErrContentLength)
+	// The HTTP method or status does not allow a response body at all (http.ErrBodyNotAllowed)
+	// Writing data to the actual connection fails.
+	_, err := w.Write([]byte(text))
+	if err != nil {
+		log.
+			WithField("func", "WriteResponse").
+			WithError(err).
+			Warn("Failed to write to HTTP response.")
+	}
+}
+
 func getDayFromDate(date string) (string, error) {
-	t, err := time.Parse("01-02-2006", date)
+	t, err := time.Parse("2006-02-06", date)
 	if err != nil {
 		return "", fmt.Errorf("could not get weekday")
 	}
