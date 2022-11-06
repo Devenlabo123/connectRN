@@ -11,7 +11,8 @@ import (
 )
 
 type handler struct {
-	apiHandler     http.Handler
+	userApiHandler http.Handler
+	imageApiHandler http.Handler
 }
 
 
@@ -28,13 +29,20 @@ func main() {
 	log.SetLevel(log.DebugLevel)
 	log.Info("service starting")
 
-	apiHandler, err := api.CreateHandler()
+	userApiHandler, err := api.CreateUserHandler()
 	if err != nil {
-		log.WithError(err).Fatal("error encountered creating api handler")
+		log.WithError(err).Fatal("error encountered creating user api handler")
 	}
 
+	imageApiHandler, err := api.CreateImageHandler()
+	if err != nil {
+		log.WithError(err).Fatal("error encountered creating image api handler")
+	}
+
+
 	h := handler{
-		apiHandler: apiHandler,
+		userApiHandler: userApiHandler,
+		imageApiHandler: imageApiHandler,
 	}
 	srv := &http.Server{Addr: ":8080", Handler: h}
 
@@ -50,7 +58,9 @@ func main() {
 
 func (h handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if strings.Index(request.URL.Path, "/api/createUser") == 0 {
-		h.apiHandler.ServeHTTP(writer, request)
+		h.userApiHandler.ServeHTTP(writer, request)
+	} else if strings.Index(request.URL.Path, "/api/images") == 0 {
+		h.imageApiHandler.ServeHTTP(writer, request)
 	} else {
 		writer.WriteHeader(http.StatusNotFound)
 	}

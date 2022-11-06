@@ -10,10 +10,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Handler struct {}
+type UserHandler struct {}
 
-func CreateHandler() (*Handler, error) {
-	return &Handler{}, nil
+func CreateUserHandler() (*UserHandler, error) {
+	return &UserHandler{}, nil
 }
 
 // CreateUserRequestBody defines the format of the /createUser request body.
@@ -59,7 +59,7 @@ func validateCreateUserInput(users []CreateUserRequestBody) error {
 }
 
 
-func (h *Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (h *UserHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case http.MethodPost:
 		// validate auth
@@ -71,7 +71,7 @@ func (h *Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 }
 
-func (h *Handler) handleCreateUserRequest(writer http.ResponseWriter, request *http.Request) {
+func (h *UserHandler) handleCreateUserRequest(writer http.ResponseWriter, request *http.Request) {
 	payload := &[]CreateUserRequestBody{}
 
 	if err := ReadAndParseUserRequestBody(writer, request, payload); err != nil {

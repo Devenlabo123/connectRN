@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreateUserHappyPath(t *testing.T) {
-	h, err := CreateHandler()
+	h, err := CreateUserHandler()
 	if err != nil {
 		t.Fatalf("error creating handler")
 	}
@@ -41,7 +41,7 @@ func TestCreateUserHappyPath(t *testing.T) {
 
 
 func TestCreateNoUserId(t *testing.T) {
-	h, err := CreateHandler()
+	h, err := CreateUserHandler()
 	if err != nil {
 		t.Fatalf("error creating handler")
 	}
@@ -70,7 +70,7 @@ func TestCreateNoUserId(t *testing.T) {
 }
 
 func TestCreateNoName(t *testing.T) {
-	h, err := CreateHandler()
+	h, err := CreateUserHandler()
 	if err != nil {
 		t.Fatalf("error creating handler")
 	}
@@ -99,7 +99,7 @@ func TestCreateNoName(t *testing.T) {
 }
 
 func TestBadEntity(t *testing.T) {
-	h, err := CreateHandler()
+	h, err := CreateUserHandler()
 	if err != nil {
 		t.Fatalf("error creating handler")
 	}
