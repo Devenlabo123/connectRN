@@ -49,7 +49,7 @@ func main() {
 }
 
 func (h handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	if strings.Index(request.URL.Path, "/api") == 0 {
+	if strings.Index(request.URL.Path, "/api/createUser") == 0 {
 		h.apiHandler.ServeHTTP(writer, request)
 	} else {
 		writer.WriteHeader(http.StatusNotFound)

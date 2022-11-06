@@ -28,11 +28,6 @@ type CreateUserRequestBody struct {
 	CreatedOn int `json:"created_on"`
 }
 
-// CreateUserRequestBodyList defines the format of the /createUser request body.
-type CreateUserRequestBodyList struct {
-	list []CreateUserRequestBody
-}
-
 type CreateUserResponseBody struct {
 	// example: 123456
 	UserId int `json:"user_id"`
