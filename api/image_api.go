@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"image"
 	"image/jpeg"
 	"image/png"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/nfnt/resize"
 )
 
 type ImageHandler struct {}
@@ -23,6 +26,7 @@ func (i ImageHandler) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 
 		err := i.handleCreateUserRequest(writer, request)
 		if err != nil {
+			log.Error(err)
 			WriteStatusCode(writer, http.StatusBadRequest)
 			WriteResponse(writer, err.Error())
 		}
@@ -32,38 +36,40 @@ func (i ImageHandler) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 }
 
 func (i ImageHandler) handleCreateUserRequest (writer http.ResponseWriter, request *http.Request) error {
+	// set max size of upload
 	request.ParseMultipartForm(10 << 20)
 
+	// read uploaded file into memory as byte[]
 	file, handler, err := request.FormFile("file")
 	if err != nil {
 		log.Error("Error Retrieving the File")
 		return fmt.Errorf(err.Error())
 	}
+
 	defer file.Close()
 	log.Debug("Uploaded File: %+v\n", handler.Filename)
 	log.Debug("File Size: %+v\n", handler.Size)
 	log.Debug("MIME Header: %+v\n", handler.Header)
 
-	// Create a temporary file
-	tempFile, err := ioutil.TempFile("/tmp/temp-images", "upload-*.png")
-	if err != nil {
-		return fmt.Errorf(err.Error())
-	}
-	defer tempFile.Close()
-
-	// read contents of our uploaded file into a byte array
 	uploadedFileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
 
-	newFileBytes, err := convertFileToPng(uploadedFileBytes)
+	// convert file to png
+	pngImageBytes, err := convertFileToPng(uploadedFileBytes)
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
+
+	// resize image
+	resizedPngImageBytes, err := resizeImage(pngImageBytes)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
 
 	writer.Header().Set("Content-Type", "image/png")
-	writer.Write(newFileBytes)
+	writer.Write(resizedPngImageBytes)
 
 	return nil
 }
@@ -92,3 +98,19 @@ func convertFileToPng(imageBytes []byte) ([]byte, error) {
 	return nil, fmt.Errorf("unable to convert %#v to png", contentType)
 }
 
+func resizeImage(pngImageBytes []byte) ([]byte, error) {
+	pngImage, _, err := image.Decode(bytes.NewReader(pngImageBytes))
+	if err != nil {
+		return nil, fmt.Errorf(err.Error())
+	}
+
+	resized := resize.Resize(256, 256, pngImage, resize.Lanczos3)
+	buf := new(bytes.Buffer)
+	err = jpeg.Encode(buf, resized, nil)
+
+	if err != nil {
+		return nil, fmt.Errorf(err.Error())
+	}
+
+	return buf.Bytes(), nil
+}
