@@ -37,39 +37,42 @@ func (i ImageHandler) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 
 func (i ImageHandler) handleCreateUserRequest (writer http.ResponseWriter, request *http.Request) error {
 	// set max size of upload
-	request.ParseMultipartForm(10 << 20)
+	err := request.ParseMultipartForm(10 << 20)
+
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
 
 	// read uploaded file into memory as byte[]
-	file, handler, err := request.FormFile("file")
+	file, _, err := request.FormFile("file")
 	if err != nil {
-		log.Error("Error Retrieving the File")
 		return fmt.Errorf(err.Error())
 	}
 
 	defer file.Close()
-	log.Debug("Uploaded File: %+v\n", handler.Filename)
-	log.Debug("File Size: %+v\n", handler.Size)
-	log.Debug("MIME Header: %+v\n", handler.Header)
+	//log.Debug("Uploaded File: %+v\n", handler.Filename)
+	//log.Debug("File Size: %+v\n", handler.Size)
+	//log.Debug("MIME Header: %+v\n", handler.Header)
 
 	uploadedFileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
 
-	// convert file to png
-	pngImageBytes, err := convertFileToPng(uploadedFileBytes)
+	// resize image
+	resizedUploadedImageBytes, err := resizeImage(uploadedFileBytes)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
 
-	// resize image
-	resizedPngImageBytes, err := resizeImage(pngImageBytes)
+	// convert file to png
+	pngImageBytes, err := convertFileToPng(resizedUploadedImageBytes)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
 
 	writer.Header().Set("Content-Type", "image/png")
-	writer.Write(resizedPngImageBytes)
+	writer.Write(pngImageBytes)
 
 	return nil
 }
@@ -107,7 +110,6 @@ func resizeImage(pngImageBytes []byte) ([]byte, error) {
 	resized := resize.Resize(256, 256, pngImage, resize.Lanczos3)
 	buf := new(bytes.Buffer)
 	err = jpeg.Encode(buf, resized, nil)
-
 	if err != nil {
 		return nil, fmt.Errorf(err.Error())
 	}
