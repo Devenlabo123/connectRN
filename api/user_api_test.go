@@ -36,6 +36,8 @@ func TestCreateUserHappyPath(t *testing.T) {
 	h.ServeHTTP(responseRecorder, request)
 
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
+
+	// TODO: read response body into a CreateUserResponseBody and assert the value each field
 	assert.Equal(t, "[{\"user_id\":1234,\"name\":\"John\",\"date_of_week\":\"Thursday\",\"create_on_rfc\":\"2014-02-20T07:32:56-05:00\"}]", responseRecorder.Body.String())
 }
 
@@ -97,6 +99,8 @@ func TestCreateNoName(t *testing.T) {
 	assert.Equal(t, http.StatusUnprocessableEntity, responseRecorder.Code)
 	assert.Equal(t, "name is required", responseRecorder.Body.String())
 }
+
+// TODO: add tests for other validation errors
 
 func TestBadEntity(t *testing.T) {
 	h, err := CreateUserHandler()

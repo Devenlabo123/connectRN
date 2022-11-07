@@ -105,3 +105,7 @@ func TestPNGToPNGHappyPath(t *testing.T) {
 	image, _, err := image.Decode(bytes.NewReader(responseBodyBytes))
 	assert.Equal(t, "(256,256)", image.Bounds().Max.String())
 }
+
+// TODO: add test that uploads an image that is too large
+
+// TODO: add test that does not upload on image
