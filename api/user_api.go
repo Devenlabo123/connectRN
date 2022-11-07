@@ -36,7 +36,7 @@ type CreateUserResponseBody struct {
 	// example: Tuesday
 	DayOfWeek string `json:"date_of_week"`
 	// example: 1642612034
-	CreateOn string `json:"create_on_rfc"`
+	CreatedOn string `json:"created_on_rfc"`
 }
 
 func validateCreateUserInput(users []CreateUserRequestBody) error {
@@ -98,7 +98,7 @@ func (h *UserHandler) handleCreateUserRequest(writer http.ResponseWriter, reques
 			UserId:    user.UserId,
 			Name:      user.Name,
 			DayOfWeek: dayOfWeek,
-			CreateOn:  createdOnRFC3339,
+			CreatedOn: createdOnRFC3339,
 		}
 
 		responseList = append(responseList, userResponse)
@@ -112,37 +112,37 @@ func ReadAndParseUserRequestBody(w http.ResponseWriter, r *http.Request, userReq
 
 	if err != nil {
 		log.
-			WithField("func", "ReadAndParseRequestBody").
+			WithField("func", "ReadAndParseUserRequestBody").
 			WithField("statusCode", http.StatusBadRequest).
 			WithError(err).
 			Error("Error reading request body")
 
 		WriteStatusCode(w, http.StatusBadRequest)
-		return
+		return fmt.Errorf(err.Error())
 	}
 
 	err = json.Unmarshal(bodyBytes, userRequestList)
 	if err != nil {
 		log.
-			WithField("func", "ReadAndParseRequestBody").
+			WithField("func", "ReadAndParseUserRequestBody").
 			WithField("statusCode", http.StatusBadRequest).
 			WithError(err).
 			Error("Error parsing JSON body")
 		WriteStatusCode(w, http.StatusBadRequest)
-		return
+		return fmt.Errorf(err.Error())
 	}
 
 	err = validateCreateUserInput(*userRequestList)
 
 	if err != nil {
 		log.
-			WithField("func", "ReadAndParseRequestBody").
+			WithField("func", "ReadAndParseUserRequestBody").
 			WithField("statusCode", http.StatusUnprocessableEntity).
 			WithError(err).
 			Error("Invalid request body")
 		WriteStatusCode(w, http.StatusUnprocessableEntity)
 		WriteResponse(w, err.Error())
-		return
+		return fmt.Errorf(err.Error())
 	}
 
 	return

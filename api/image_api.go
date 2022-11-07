@@ -50,9 +50,6 @@ func (i ImageHandler) handleCreateUserRequest (writer http.ResponseWriter, reque
 	}
 
 	defer file.Close()
-	//log.Debug("Uploaded File: %+v\n", handler.Filename)
-	//log.Debug("File Size: %+v\n", handler.Size)
-	//log.Debug("MIME Header: %+v\n", handler.Header)
 
 	uploadedFileBytes, err := ioutil.ReadAll(file)
 	if err != nil {

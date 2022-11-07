@@ -38,7 +38,7 @@ func TestCreateUserHappyPath(t *testing.T) {
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
 
 	// TODO: read response body into a CreateUserResponseBody and assert the value each field
-	assert.Equal(t, "[{\"user_id\":1234,\"name\":\"John\",\"date_of_week\":\"Thursday\",\"create_on_rfc\":\"2014-02-20T07:32:56-05:00\"}]", responseRecorder.Body.String())
+	assert.Equal(t, "[{\"user_id\":1234,\"name\":\"John\",\"date_of_week\":\"Thursday\",\"created_on_rfc\":\"2014-02-20T07:32:56-05:00\"}]", responseRecorder.Body.String())
 }
 
 

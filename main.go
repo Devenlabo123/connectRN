@@ -53,7 +53,6 @@ func main() {
 
 	log.Info("service initialized")
 	wg.Wait()
-
 }
 
 func (h handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
