@@ -92,7 +92,7 @@ func (h *UserHandler) handleCreateUserRequest(writer http.ResponseWriter, reques
 			return
 		}
 
-		createdOnRFC3339 := time.Unix(1392899576, 0).Format(time.RFC3339)
+		createdOnRFC3339 := time.Unix(int64(user.CreatedOn), 0).Format(time.RFC3339)
 
 		userResponse := CreateUserResponseBody{
 			UserId:    user.UserId,
